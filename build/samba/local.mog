@@ -1,0 +1,22 @@
+license ../COPYING license=GPLv3
+
+# don't ship directories we don't need to (provided elsewhere)
+#<transform dir -> drop>
+<transform dir path=usr/.* -> drop>
+#<transform dir path=usr/man -> drop>
+
+<transform file dir link path=usr/man/(.*)$ -> edit path usr/man/(.*)$ usr/share/man/%<1> >
+
+# cleanup perms
+dir group=bin mode=0755 owner=root path=var/samba/log
+<transform dir path=var/samba(.*) -> set mode 0700>
+<transform dir path=var/samba(.*) -> set group sys>
+<transform dir path=etc/samba/private -> set mode 0700>
+<transform dir path=etc/samba/private -> set owner root>
+<transform dir path=etc/samba/private -> set group root>
+<transform dir path=var/samba/locks$ -> set mode 0755>
+
+# conflicts with SUNWcs
+<transform file path=usr/bin/profiles$ -> drop>
+<transform file path=usr/share/man/man1/profiles.1 -> drop>
+
