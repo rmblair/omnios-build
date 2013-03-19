@@ -1,0 +1,4 @@
+license COPYING license=GPLv2
+
+<transform dir path=usr/.* -> drop>
+<transform file dir link path=usr/man/(.*)$ -> edit path usr/man/(.*)$ usr/share/man/%<1> >
