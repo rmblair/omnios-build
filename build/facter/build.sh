@@ -23,6 +23,7 @@
 #
 # Copyright 2011-2012 OmniTI Computer Consulting, Inc.  All rights reserved.
 # Use is subject to license terms.
+# Portions Copyright 2013 Greg Mason
 #
 # Load support functions
 . ../../lib/functions.sh
