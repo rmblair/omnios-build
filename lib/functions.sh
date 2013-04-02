@@ -137,6 +137,25 @@ ask_to_continue() {
     logmsg "===== Error occured, user chose to continue anyway. ====="
 }
 
+ask_to_continue_nonerror() {
+    # Ask the user if they want to continue or quit in the event of an error
+    if [[ -z $BATCH ]]; then
+        echo -n "Do you wish to continue? (y/n) "
+        read
+        while [[ ! "$REPLY" =~ [yYnN] ]]; do
+            echo -n "continue? (y/n) "
+            read
+        done
+        if [[ "$REPLY" == "n" || "$REPLY" == "N" ]]; then
+            logmsg "===== Build aborted ====="
+            exit 1
+        fi
+    else
+        logmsg "(continuing in batch mode)"
+    fi
+}
+
+
 #############################################################################
 # URL encoding for package names, at least
 #############################################################################
@@ -155,8 +174,15 @@ url_encode() {
 # Set the LANG to C as the assembler will freak out on unicode in headers
 LANG=C
 export LANG
+# Determine what release we're running as that affects some versions of things
+RELEASE=$(head -1 /etc/release | awk '{ print $3 }')
 # Set the path - This can be overriden/extended in the build script
-PATH="/opt/gcc-4.6.3/bin:/usr/ccs/bin:/usr/bin:/usr/sbin:/usr/gnu/bin:/usr/sfw/bin"
+PATH="/usr/ccs/bin:/usr/bin:/usr/sbin:/usr/gnu/bin:/usr/sfw/bin"
+if [[ ${RELEASE:1} -le 151004 ]]; then
+    PATH="/opt/gcc-4.6.3/bin:$PATH"
+else
+    PATH="/opt/gcc-4.7.2/bin:$PATH"
+fi
 export PATH
 # The dir where this file is located - used for sourcing further files
 MYDIR=$PWD/`dirname $BASH_SOURCE[0]`
@@ -177,6 +203,27 @@ if [[ -f $LOGFILE ]]; then
     mv $LOGFILE $LOGFILE.1
 fi
 process_opts $@
+
+BasicRequirements(){
+    local needed=""
+    [[ -x /opt/gcc-4.6.3/bin/gcc ]] || if [[ ${RELEASE:1} -le 151004 ]]; then needed+=" developer/gcc46"; fi
+    [[ -x /opt/gcc-4.7.2/bin/gcc ]] || if [[ ${RELEASE:1} -ge 151005 ]]; then needed+=" developer/gcc47"; fi
+    [[ -x /usr/bin/ar ]] || needed+=" developer/object-file"
+    [[ -x /usr/bin/ld ]] || needed+=" developer/linker"
+    [[ -f /usr/lib/crt1.o ]] || needed+=" developer/library/lint"
+    [[ -x /usr/bin/gmake ]] || needed+=" developer/build/gnu-make"
+    [[ -f /usr/include/sys/types.h ]] || needed+=" system/header"
+    [[ -f /usr/include/math.h ]] || needed+=" system/library/math/header-math"
+    [[ -x /usr/bin/rsync ]] || needed+=" network/rsync"
+    if [[ -n "$needed" ]]; then
+        logmsg "You appear to be missing some basic build requirements."
+        logmsg "To fix this run:"
+        logmsg " "
+        logmsg "  sudo pkg install$needed"
+        logerr
+    fi
+}
+BasicRequirements
 
 #############################################################################
 # Running as root is not safe
@@ -240,9 +287,9 @@ init() {
 # Verify any dependencies
 #############################################################################
 verify_depends() {
-    logmsg "Verifying dependencies"
-    [[ -z "$DEPENDS_IPS" ]] && DEPENDS_IPS=$DEPENDS
-    for i in $DEPENDS_IPS; do
+    logmsg "Verifying build dependencies"
+    [[ -z "$BUILD_DEPENDS_IPS" ]] && BUILD_DEPENDS_IPS=$BUILD_DEPENDS
+    for i in $BUILD_DEPENDS_IPS; do
         # Trim indicators to get the true name (see make_package for details)
         case ${i:0:1} in
             \=|\?)
@@ -257,11 +304,7 @@ verify_depends() {
                 ;;
         esac
         pkg info $i > /dev/null 2<&1 ||
-            logerr "--- Package dependency $i not found"
-    done
-    for i in $BUILD_DEPENDS_IPS; do
-        pkg info $i > /dev/null 2<&1 ||
-            logerr "--- Build-time dependency $i not found"
+            logerr "--- Build dependency $i not found"
     done
 }
 
@@ -272,6 +315,19 @@ run_autoconf() {
     logmsg "Running autoconf"
     pushd $TMPDIR/$BUILDDIR > /dev/null
     logcmd autoconf || logerr "Failed to run autoconf"
+    popd > /dev/null
+}
+
+run_autogen() {
+    logmsg "Running autogen.sh"
+    pushd $TMPDIR/$BUILDDIR > /dev/null
+    CFLAGS="$CFLAGS32 $CFLAGS" \
+    CXXFLAGS="$CXXFLAGS32 $CXXFLAGS" \
+    CPPFLAGS="$CPPFLAGS32 $CPPFLAGS" \
+    LDFLAGS="$LDFLAGS32 $LDFLAGS" \
+    CC=$CC CXX=$CXX \
+    logcmd ./autogen.sh $CONFIGURE_OPTS_32 $CONFIGURE_OPTS_64 $CONFIGURE_OPTS || \
+        logerr "Failed to run autogen.sh"
     popd > /dev/null
 }
 
@@ -353,6 +409,53 @@ patch_file() {
     else
         logmsg "--- Applied patch $FILENAME"
     fi
+}
+
+#############################################################################
+# Download source from git
+#############################################################################
+# Parameters
+#   $1 - repos
+#   $2 - branch
+#   $3 - commit
+#   $4 - version
+#
+# E.g.
+#       download_git https://github.com/omniti-labs/nab master HEAD
+download_git() {
+    local REPOS=$1
+    local BRANCH=$2
+    local COMMIT=$3
+    local VERSION=$4
+    if [ -n "$BRANCH" ]; then
+        BRANCH="master"
+    fi
+    if [ -n "$COMMIT" ]; then
+        COMMIT="HEAD"
+    fi
+    pushd $TMPDIR > /dev/null
+    logmsg "Checking for source directory"
+    if [ -d $BUILDDIR ]; then
+        logmsg "--- removing previous source checkout"
+        logcmd rm -rf $BUILDDIR
+    fi
+    logmsg "Checking code out from git repo"
+    logcmd $GIT clone $REPOS $BUILDDIR
+    pushd $BUILDDIR > /dev/null
+    if [ -n "$COMMIT" ]; then
+        logcmd $GIT checkout $COMMIT
+    fi
+    if [ -n "$VERSION" ]; then
+        VER=$VERSION
+        VERHUMAN=$VER
+    else
+        REV=`$GIT log -1  --format=format:%at`
+        REVDATE=`echo $REV | gawk '{ print strftime("%c %Z",$1) }'`
+        VER=0.1.$REV
+        VERHUMAN="checkout from $REVDATE"
+    fi
+    popd > /dev/null
+    popd > /dev/null
 }
 
 #############################################################################
@@ -470,30 +573,6 @@ extract_archive() {
 #############################################################################
 make_package() {
     logmsg "Making package"
-    case $BUILDARCH in
-        32)
-            BUILDSTR="32bit-"
-            ;;
-        64)
-            BUILDSTR="64bit-"
-            ;;
-        *)
-            BUILDSTR=""
-            ;;
-    esac
-    # Add the flavor name to the package if it is not the default
-    case $FLAVOR in
-        ""|default)
-            FLAVORSTR=""
-            ;;
-        *)
-            FLAVORSTR="$FLAVOR-"
-            ;;
-    esac
-    DESCSTR="$DESC"
-    if [[ -n "$FLAVORSTR" ]]; then
-        DESCSTR="$DESCSTR ($FLAVOR)"
-    fi
     PKGSEND=/usr/bin/pkgsend
     PKGMOGRIFY=/usr/bin/pkgmogrify
     PKGFMT=/usr/bin/pkgfmt
@@ -504,12 +583,7 @@ make_package() {
 
     ## Strip leading zeros in version components.
     VER=`echo $VER | sed -e 's/\.0*\([1-9]\)/.\1/g;'`
-    if [[ -n "$FLAVOR" ]]; then
-        # We use FLAVOR instead of FLAVORSTR as we don't want the trailing dash
-        FMRI="${PKG}-${FLAVOR}@${VER},${SUNOSVER}-${PVER}"
-    else
-        FMRI="${PKG}@${VER},${SUNOSVER}-${PVER}"
-    fi
+    FMRI="${PKG}@${VER},${SUNOSVER}-${PVER}"
     if [[ -n "$DESTDIR" ]]; then
         logmsg "--- Generating package manifest from $DESTDIR"
         logmsg "------ Running: $PKGSEND generate $DESTDIR > $P5M_INT"
@@ -528,7 +602,7 @@ make_package() {
         echo "set name=pkg.human-version value=\"$VERHUMAN\"" >> $MY_MOG_FILE
     fi
     echo "set name=pkg.summary value=\"$SUMMARY\"" >> $MY_MOG_FILE
-    echo "set name=pkg.descr value=\"$DESCSTR\"" >> $MY_MOG_FILE
+    echo "set name=pkg.descr value=\"$DESC\"" >> $MY_MOG_FILE
     echo "set name=publisher value=\"sa@omniti.com\"" >> $MY_MOG_FILE
     if [[ -n "$DEPENDS_IPS" ]]; then
         logmsg "------ Adding dependencies"
@@ -562,9 +636,16 @@ make_package() {
     logmsg "--- Applying transforms"
     $PKGMOGRIFY $P5M_INT $MY_MOG_FILE $GLOBAL_MOG_FILE $LOCAL_MOG_FILE $* | $PKGFMT -u > $P5M_FINAL
     logmsg "--- Publishing package"
-    logerr "Intentional pause: Last chance to sanity-check before publication!"
-    logcmd $PKGSEND -s $PKGSRVR publish -d $DESTDIR -d $TMPDIR/$BUILDDIR \
-        -d $SRCDIR $P5M_FINAL || logerr "------ Failed to publish package"
+    logmsg "Intentional pause: Last chance to sanity-check before publication!"
+    ask_to_continue_nonerror
+    if [[ -n "$DESTDIR" ]]; then
+        logcmd $PKGSEND -s $PKGSRVR publish -d $DESTDIR -d $TMPDIR/$BUILDDIR \
+            -d $SRCDIR $P5M_FINAL || logerr "------ Failed to publish package"
+    else
+        # If we're a metapackage (no DESTDIR) then there are no directories to check
+        logcmd $PKGSEND -s $PKGSRVR publish $P5M_FINAL || \
+            logerr "------ Failed to publish package"
+    fi
     logmsg "--- Published $FMRI" 
 }
 
@@ -635,10 +716,10 @@ make_clean() {
 
 configure32() {
     logmsg "--- configure (32-bit)"
-    CFLAGS="$CFLAGS $CFLAGS32" \
-    CXXFLAGS="$CXXFLAGS $CXXFLAGS32" \
-    CPPFLAGS="$CPPFLAGS $CPPFLAGS32" \
-    LDFLAGS="$LDFLAGS $LDFLAGS32" \
+    CFLAGS="$CFLAGS32 $CFLAGS" \
+    CXXFLAGS="$CXXFLAGS32 $CXXFLAGS" \
+    CPPFLAGS="$CPPFLAGS32 $CPPFLAGS" \
+    LDFLAGS="$LDFLAGS32 $LDFLAGS" \
     CC=$CC CXX=$CXX \
     logcmd $CONFIGURE_CMD $CONFIGURE_OPTS_32 \
     $CONFIGURE_OPTS || \
@@ -647,10 +728,10 @@ configure32() {
 
 configure64() {
     logmsg "--- configure (64-bit)"
-    CFLAGS="$CFLAGS $CFLAGS64" \
-    CXXFLAGS="$CXXFLAGS $CXXFLAGS64" \
-    CPPFLAGS="$CPPFLAGS $CPPFLAGS64" \
-    LDFLAGS="$LDFLAGS $LDFLAGS64" \
+    CFLAGS="$CFLAGS64 $CFLAGS" \
+    CXXFLAGS="$CXXFLAGS64 $CXXFLAGS" \
+    CPPFLAGS="$CPPFLAGS64 $CPPFLAGS" \
+    LDFLAGS="$LDFLAGS64 $LDFLAGS" \
     CC=$CC CXX=$CXX \
     logcmd $CONFIGURE_CMD $CONFIGURE_OPTS_64 \
     $CONFIGURE_OPTS || \
@@ -756,7 +837,7 @@ pre_python_32() {
     logmsg "prepping 32bit python build"
 }
 pre_python_64() {
-    logmsg "prepping 32bit python build"
+    logmsg "prepping 64bit python build"
 }
 python_build() {
     if [[ -z "$PYTHON" ]]; then logerr "PYTHON not set"; fi
@@ -765,31 +846,49 @@ python_build() {
     logmsg "Building using python setup.py"
     pushd $TMPDIR/$BUILDDIR > /dev/null
 
+    if [[ $BUILDARCH == "32" || $BUILDARCH == "both" ]]; then
+        buildpython32
+    fi
+    if [[ $BUILDARCH == "64" || $BUILDARCH == "both" ]]; then
+        buildpython64
+    fi
+    popd > /dev/null
+}
+
+buildpython32() {
     ISALIST=i386
     export ISALIST
     pre_python_32
     logmsg "--- setup.py (32) build"
+    CFLAGS="$CFLAGS32 $CFLAGS" \
+    CXXFLAGS="$CXXFLAGS32 $CXXFLAGS" \
+    CPPFLAGS="$CPPFLAGS32 $CPPFLAGS" \
+    LDFLAGS="$LDFLAGS32 $LDFLAGS" \
+    CC=$CC CXX=$CXX \
     logcmd $PYTHON ./setup.py build ||
         logerr "--- build failed"
     logmsg "--- setup.py (32) install"
     logcmd $PYTHON \
         ./setup.py install --root=$DESTDIR ||
         logerr "--- install failed"
+}
 
+buildpython64(){
     ISALIST="amd64 i386"
     export ISALIST
     pre_python_64
     logmsg "--- setup.py (64) build"
+    CFLAGS="$CFLAGS64 $CFLAGS" \
+    CXXFLAGS="$CXXFLAGS64 $CXXFLAGS" \
+    CPPFLAGS="$CPPFLAGS64 $CPPFLAGS" \
+    LDFLAGS="$LDFLAGS64 $LDFLAGS" \
+    CC=$CC CXX=$CXX \
     logcmd $PYTHON ./setup.py build ||
         logerr "--- build failed"
     logmsg "--- setup.py (64) install"
     logcmd $PYTHON \
         ./setup.py install --root=$DESTDIR ||
         logerr "--- install failed"
-    popd > /dev/null
-
-    mv $DESTDIR/usr/lib/python2.6/site-packages $DESTDIR/usr/lib/python2.6/vendor-packages ||
-        logerr "Cannot move from site-packages to vendor-packages"
 }
 
 #############################################################################
@@ -936,6 +1035,26 @@ test_if_core() {
     else
         logmsg "--- Module is not in core for Perl $DEPVER.  Continuing with build."
     fi
+}
+
+#############################################################################
+# NPM build for node.js modules
+#############################################################################
+build_npm() {
+    logmsg "Building module with npm"
+    [[ -n "$NPM" ]] || NPM=/opt/omni/bin/npm
+    pushd $TMPDIR > /dev/null
+    if [[ -d node_modules ]]; then
+        logcmd rm -rf node_modules
+    fi
+    logcmd $NPM install ${PROG}@${VER} --ws:verbose || \
+        logerr "--- npm build failed"
+    logmsg "Installing module into $DESTDIR"
+    logcmd mkdir -p $DESTDIR$PREFIX/lib/node || \
+        logerr "--- Unable to create destination directory"
+    logcmd rsync -a node_modules/ $DESTDIR$PREFIX/lib/node/ || \
+        logerr "--- Unable to copy files to destination directory"
+    popd > /dev/null
 }
 
 #############################################################################
