@@ -43,7 +43,6 @@ $PKGPUBLISHER/developer/docutils"
 
 just_install_it() {
     logmsg "Just installing it!"
-    logcmd mkdir -p $DESTDIR/opt/puppet/bin
     logcmd pushd $TMPDIR/$BUILDDIR > /dev/null
     logcmd /opt/omni/bin/ruby install.rb --destdir=${DESTDIR} --full --bindir=/usr/bin
     logcmd popd > /dev/null

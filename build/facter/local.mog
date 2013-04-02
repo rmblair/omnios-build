@@ -1,1 +1,4 @@
 license LICENSE license=Apache2.0
+
+# get rid of extra directories
+<transform dir path=opt/.* -> drop>
