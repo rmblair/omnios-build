@@ -51,7 +51,7 @@ DEPENDS_IPS="
 #modified from ../lib/gem-functions.sh
 GEM_BIN=/opt/omni/bin/gem
 RAKE_BIN=/opt/omni/bin/rake
-RUBY_VER=1.9
+RUBY_VER=1.9.1
 # match where omni ruby-19 lives
 PREFIX=/opt/omni
 custom_build32() {
@@ -86,7 +86,6 @@ patch_source
 prep_build
 custom_build32
 make_isa_stub
-fix_permissions
 make_package
 clean_up
 
