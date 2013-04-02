@@ -1,0 +1,4 @@
+license COPYING license=GPLv2
+
+# clean up created dirs
+<transform dir path=opt/.* -> drop>
