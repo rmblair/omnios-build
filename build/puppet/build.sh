@@ -40,6 +40,8 @@ DEPENDS_IPS="omniti/runtime/ruby-19 \
 $PKGPUBLISHER/developer/docutils \
 $PKGPUBLISHER/system/management/facter"
 
+# optionally: $PKGPUBLISHER/system/management/augeas
+
 BUILD_DEPENDS_IPS="omniti/runtime/ruby-19 \
 $PKGPUBLISHER/developer/docutils"
 
