@@ -1,0 +1,6 @@
+license COPYING license=GPLv2
+
+<transform dir path=usr/.* -> drop>
+
+# augeas seems to get this correct already, but this is safe
+<transform file dir link path=usr/man/(.*)$ -> edit path usr/man/(.*)$ usr/share/man/%<1> >
