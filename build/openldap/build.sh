@@ -49,7 +49,7 @@ DEPENDS_IPS="system/library \
 #    omniti/database/bdb
 
 BUILDDIR=$PROG-$VER/
-BUILDARCH=32
+BUILDARCH=64
 
 ### only if you're building slapd
 #CPPFLAGS="-I/opt/omni/include/"

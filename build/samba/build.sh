@@ -50,7 +50,7 @@ DEPENDS_IPS="service/network/dns/mdns \
  $PKGPUBLISHER/library/openldap"
 
 BUILDDIR=$PROG-$VER/source3
-BUILDARCH=32
+BUILDARCH=64
 CPPFLAGS="$(krb5-config --cflags) -I/opt/$PKGPUBLISHER/include"
 LDFLAGS="-Wl,-rpath=/opt/$PKGPUBLISHER/lib -L/opt/$PKGPUBLISHER/lib $(krb5-config --libs) -lgss"
 CONFIGURE_OPTS="
