@@ -63,6 +63,7 @@ CONFIGURE_OPTS="
     --with-privatedir=/etc/samba/private
     --localstatedir=/var/samba
     --sharedstatedir=/var/samba
+    --with-nmbdsocketdir=/var/run/nmbd
     --enable-static=no
     --disable-static
     --disable-swat

@@ -8,13 +8,18 @@ license ../COPYING license=GPLv3
 <transform file dir link path=usr/man/(.*)$ -> edit path usr/man/(.*)$ usr/share/man/%<1> >
 
 # cleanup perms
-dir group=bin mode=0755 owner=root path=var/samba/log
-<transform dir path=var/samba(.*) -> set mode 0700>
+dir group=bin mode=0750 owner=root path=var/samba/log
+<transform dir path=var/samba(.*) -> set mode 0750>
 <transform dir path=var/samba(.*) -> set group sys>
 <transform dir path=etc/samba/private -> set mode 0700>
 <transform dir path=etc/samba/private -> set owner root>
 <transform dir path=etc/samba/private -> set group root>
-<transform dir path=var/samba/locks$ -> set mode 0755>
+<transform dir path=var/samba/locks$ -> set mode 0750>
+# or nmbd complains
+#dir group=root mode=0755 owner=root path=var/run/nmbd
+<transform dir path=var/run/nmbd$ -> set mode 0755>
+<transform dir path=var/run/nmbd$ -> set owner root>
+<transform dir path=var/run/nmbd$ -> set group root>
 
 # conflicts with SUNWcs
 <transform file path=usr/bin/profiles$ -> drop>
