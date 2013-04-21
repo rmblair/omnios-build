@@ -1,11 +1,25 @@
 license LICENSE license=Apache2.0
 
+# get rid of extra directories
+<transform dir path=usr/.* -> drop>
+<transform dir path=opt/.* -> drop>
+
 ### needed for puppetmaster, but not agent
 group gid=499 groupname=puppet
 user ftpuser=false gcos-field="Puppet management user" group=puppet login-shell=/usr/bin/pfksh password=NP uid=499 username=puppet home-dir=/home/puppet
 
 # if you run a puppetmaster you might want to make this puppet:puppet 0700
 # I'd do that in your puppetmaster bootstrap ...
-<transform dir path=etc/puppet -> set mode 0755>
-<transform dir path=etc/puppet -> set owner root>
-<transform dir path=etc/puppet -> set group root>
+<transform dir path=etc/puppet -> set mode 0751>
+<transform dir path=etc/puppet -> set owner puppet>
+<transform dir path=etc/puppet -> set group puppet>
+
+<transform file path=etc/puppet/(.*)$ -> edit path etc/puppet/(.*\.conf)$ etc/puppet/%<1>-dist >
+
+dir path=var/lib/puppet mode=0755 owner=puppet group=puppet
+dir path=var/lib/puppet/ssl mode=0751 owner=puppet group=puppet
+
+dir group=root mode=0755 owner=root path=var/run/puppet
+<transform dir path=var/run/puppet$ -> set mode 0755>
+<transform dir path=var/run/puppet$ -> set owner puppet>
+<transform dir path=var/run/puppet$ -> set group puppet>
