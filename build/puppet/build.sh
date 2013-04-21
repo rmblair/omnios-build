@@ -38,9 +38,8 @@ DESC="Puppet lets you centrally manage every important aspect of your system usi
 
 DEPENDS_IPS="omniti/runtime/ruby-19 \
 $PKGPUBLISHER/developer/docutils \
-$PKGPUBLISHER/system/management/facter"
-
-# optionally: $PKGPUBLISHER/system/management/augeas
+$PKGPUBLISHER/system/management/facter \
+$PKGPUBLISHER/library/ruby/augeas"
 
 BUILD_DEPENDS_IPS="omniti/runtime/ruby-19 \
 $PKGPUBLISHER/developer/docutils"
