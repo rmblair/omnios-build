@@ -1,0 +1,31 @@
+#license COPYING license=Apache2.0
+
+# get rid of extra directories
+<transform dir path=usr/.* -> drop>
+<transform dir path=opt/.* -> drop>
+
+# rubygems has gone stupid somehow, clean it up to point to opt/omni instead
+# of usr/
+<transform file dir link path=usr/lib/(.*)$ -> edit path usr/lib/(.*)$ opt/omni/lib/%<1> >
+
+# don't ship json_pure, we already depend on it OR the MRI json gem (FFI)
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/.*json_pure.* -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/.*json_pure.* -> drop>
+
+### mangled from omniti-ms/build/vagrant/vagrant.mog
+# Don't ship the cached gemfile, or anything else cached
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/cache.* -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/cache.* -> drop>
+# Don't ship the unit tests, docs
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/test(s?) -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/test(s?) -> drop>
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/benchmark -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/benchmark -> drop>
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/examples -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/examples -> drop>
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/doc -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/doc -> drop>
+
+# make it accessible via usr/bin
+link path=usr/bin/hiera target=/opt/omni/lib/ruby/gems/1.9.1/bin/hiera
+
