@@ -23,3 +23,8 @@ dir group=root mode=0755 owner=root path=var/run/puppet
 <transform dir path=var/run/puppet$ -> set mode 0755>
 <transform dir path=var/run/puppet$ -> set owner puppet>
 <transform dir path=var/run/puppet$ -> set group puppet>
+
+dir group=puppet mode=0750 owner=puppet path=var/log/puppet
+<transform dir path=var/log/puppet$ -> set mode 0750>
+<transform dir path=var/log/puppet$ -> set owner puppet>
+<transform dir path=var/log/puppet$ -> set group puppet>
