@@ -54,11 +54,21 @@ just_install_it() {
     logcmd popd > /dev/null
 }
 
+# Extra script/file installs
+add_example_conf() {
+    logmsg "Installing example/default configuration"
+    for f in $SRCDIR/files/*
+    do
+      logcmd cp $f $DESTDIR/etc/puppet/$(basename $f)
+    done
+}
+
 init
 download_source $PROG $PROG $VER
 prep_build
 make_isa_stub
 just_install_it
+add_example_conf
 make_package
 clean_up
 
