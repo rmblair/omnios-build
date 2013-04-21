@@ -1,0 +1,26 @@
+#license <filename> license=GPLv2
+#license <filename> license=ruby.license
+
+# get rid of extra directories
+<transform dir path=usr/.* -> drop>
+<transform dir path=opt/.* -> drop>
+
+# rubygems has gone stupid somehow, clean it up to point to opt/omni instead
+# of usr/
+<transform file dir link path=usr/(.*)$ -> edit path usr/(.*)$ opt/omni/%<1> >
+#license LICENSE license=Apache2.0
+
+### mangled from omniti-ms/build/vagrant/vagrant.mog
+# Don't ship the cached gemfile, or anything else cached
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/cache.* -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/cache.* -> drop>
+# Don't ship the unit tests, docs
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/test(s?) -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/test(s?) -> drop>
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/benchmark -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/benchmark -> drop>
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/examples -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/examples -> drop>
+<transform dir path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/doc -> drop>
+<transform file path=opt/omni/lib/ruby/gems/1.9.1/gems/.*/doc -> drop>
+
