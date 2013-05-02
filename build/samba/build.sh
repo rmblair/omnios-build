@@ -33,13 +33,13 @@
 . ../../lib/functions.sh
 
 PROG=samba
-VER="3.6.13"
+VER="3.6.14"
 VERHUMAN=$VER
 PKG=$PKGPUBLISHER/service/network/samba
 SUMMARY="$PROG - CIFS server and domain controller"
 DESC="$SUMMARY ($VERS)"
 
-#http://samba.org/samba/ftp/stable/samba-3.6.13.tar.gz
+#http://samba.org/samba/ftp/stable/samba-3.6.14.tar.gz
 
 DEPENDS_IPS="service/network/dns/mdns \
  developer/build/autoconf \
