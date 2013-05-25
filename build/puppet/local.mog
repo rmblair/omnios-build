@@ -6,7 +6,7 @@ license LICENSE license=Apache2.0
 
 ### needed for puppetmaster, but not agent
 group gid=499 groupname=puppet
-user ftpuser=false gcos-field="Puppet management user" group=puppet login-shell=/usr/bin/pfksh password=NP uid=499 username=puppet home-dir=/home/puppet
+user ftpuser=false gcos-field="Puppet management user" group=puppet password=NP uid=499 username=puppet home-dir=/var/lib/puppet
 
 # if you run a puppetmaster you might want to make this puppet:puppet 0700
 # I'd do that in your puppetmaster bootstrap ...
