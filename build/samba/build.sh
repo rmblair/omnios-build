@@ -33,15 +33,22 @@
 . ../../lib/functions.sh
 
 PROG=samba
-VER="3.6.14"
+VER="3.6.15"
 VERHUMAN=$VER
 PKG=$PKGPUBLISHER/service/network/samba
 SUMMARY="$PROG - CIFS server and domain controller"
 DESC="$SUMMARY ($VERS)"
 
-#http://samba.org/samba/ftp/stable/samba-3.6.14.tar.gz
+#http://samba.org/samba/ftp/stable/samba-3.6.15.tar.gz
 
 DEPENDS_IPS="service/network/dns/mdns \
+ system/library \
+ system/library/gcc-4-runtime \
+ system/library/math \
+ system/library/security/gss \
+ $PKGPUBLISHER/library/openldap"
+
+BUILD_DEPENDS_IPS="service/network/dns/mdns \
  developer/build/autoconf \
  system/library \
  system/library/gcc-4-runtime \
