@@ -29,7 +29,7 @@
 . ../../lib/functions.sh
 
 PROG=puppet     # App name
-VER=3.1.1       # App version
+VER=3.2.1       # App version
 VERHUMAN=$VER   # Human-readable version
 #PVER=          # Branch (set in config.sh, override here if needed)
 PKG=${PKGPUBLISHER}/system/management/puppet  # Package name (e.g. library/foo)
@@ -44,7 +44,8 @@ $PKGPUBLISHER/library/ruby/augeas \
 $PKGPUBLISHER/system/management/hiera"
 
 BUILD_DEPENDS_IPS="omniti/runtime/ruby-19 \
-$PKGPUBLISHER/developer/docutils"
+$PKGPUBLISHER/developer/docutils \
+$PKGPUBLISHER/system/management/facter"
 
 just_install_it() {
     logmsg "Just installing it!"
