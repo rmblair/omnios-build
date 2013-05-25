@@ -29,7 +29,7 @@
 . ../../lib/functions.sh
 
 PROG=facter     # App name
-VER=1.7.0      # App version
+VER=1.7.1      # App version
 VERHUMAN=$VER   # Human-readable version
 #PVER=          # Branch (set in config.sh, override here if needed)
 PKG=${PKGPUBLISHER}/system/management/facter  # Package name (e.g. library/foo)
