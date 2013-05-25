@@ -58,10 +58,20 @@ just_install_it() {
 # Extra script/file installs
 add_example_conf() {
     logmsg "Installing example/default configuration"
-    for f in $SRCDIR/files/*
+    for f in $SRCDIR/files/etc/*
     do
       logcmd cp $f $DESTDIR/etc/puppet/$(basename $f)
     done
+}
+
+
+service_configs() {
+    logmsg "Installing SMF"
+    logcmd mkdir -p $DESTDIR/lib/svc/manifest/system/management/puppet
+    logcmd cp $SRCDIR/files/smf/manifest-puppet-agent.xml \
+        $DESTDIR/lib/svc/manifest/system/management/puppet/agent.xml
+    logcmd cp $SRCDIR/files/smf/manifest-puppet-master.xml \
+        $DESTDIR/lib/svc/manifest/system/management/puppet/master.xml
 }
 
 init
@@ -70,6 +80,7 @@ prep_build
 make_isa_stub
 just_install_it
 add_example_conf
+service_configs
 make_package
 clean_up
 
