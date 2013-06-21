@@ -40,7 +40,9 @@ BUILD_DEPENDS_IPS=" \
   $PKGPUBLISHER/system/management/augeas \
   omniti/runtime/ruby-19 \
   library/libxml2 \
+  developer/gcc46 \
 "
+### ^^^ gcc46 needed until omniti-provided ruby is rebuilt with 4.7.2
 
 DEPENDS_IPS="
   $PKGPUBLISHER/system/management/augeas \
