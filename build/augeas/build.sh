@@ -29,7 +29,7 @@
 . ../../lib/functions.sh
 
 PROG=augeas
-VER=1.0.0
+VER=1.1.0
 VERHUMAN=$VER
 #PVER=          # Branch (set in config.sh, override here if needed)
 PKG=$PKGPUBLISHER/system/management/augeas
