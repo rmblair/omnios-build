@@ -30,7 +30,7 @@
 . ../../lib/gem-functions.sh
 
 PROG=json_pure      # App name
-VER=1.7.7            # App version
+VER=1.8.0            # App version
 VERHUMAN=$VER   # Human-readable version
 #PVER=          # Branch (set in config.sh, override here if needed)
 PKG=$PKGPUBLISHER/library/ruby/json_pure # Package name (e.g. library/foo)
