@@ -1,0 +1,4 @@
+license COPYING license=GPLv1
+license COPYING.LIB license=LGPLv2
+
+<transform dir path=usr/.* -> drop>
