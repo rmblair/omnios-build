@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #
-# Copyright 2011-2012 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2011-2013 OmniTI Computer Consulting, Inc.  All rights reserved.
 # Use is subject to license terms.
 #
 # Load support functions
@@ -42,16 +42,17 @@ reset_configure_opts
 
 NO_PARALLEL_MAKE=1
 
-# Only 5.14.2 and later will get individual module builds
-PERLVERLIST="5.14.2"
+# Only 5.16.1 and later will get individual module builds
+PERLVERLIST="5.16.1"
 
-# Add any additional deps here; OMNIperl added below
-#DEPENDS_IPS=
+# Add any additional deps here; perl runtime added below
+#BUILD_DEPENDS_IPS=
+#RUN_DEPENDS_IPS=
 
 # We require a Perl version to use for this build and there is no default
 case $DEPVER in
-    5.14.2)
-        DEPENDS_IPS="$DEPENDS_IPS runtime/perl-5142"
+    5.16.1)
+        RUN_DEPENDS_IPS="$RUN_DEPENDS_IPS runtime/perl"
         ;;
     "")
         logerr "You must specify a version with -d DEPVER. Valid versions: $PERLVERLIST"
@@ -70,7 +71,6 @@ download_source CPAN/authors/id/${AUTHORID:0:1}/${AUTHORID:0:2}/${AUTHORID} $PRO
 patch_source
 prep_build
 buildperl
-fix_permissions
 make_package
 clean_up
 
