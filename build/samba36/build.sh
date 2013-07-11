@@ -35,9 +35,9 @@
 PROG=samba
 VER="3.6.16"
 VERHUMAN=$VER
-PKG=$PKGPUBLISHER/service/network/samba
-SUMMARY="$PROG - CIFS server and domain controller"
-DESC="$SUMMARY ($VERS)"
+PKG=$PKGPUBLISHER/service/network/samba36
+SUMMARY="${PROG}36 - CIFS server and domain controller"
+DESC="$SUMMARY ($VER)"
 
 #http://samba.org/samba/ftp/stable/samba-3.6.15.tar.gz
 
@@ -83,19 +83,18 @@ CONFIGURE_OPTS="
 
 service_configs() {
     logmsg "Installing SMF"
-    logcmd mkdir -p $DESTDIR/lib/svc/manifest/network/samba
+    logcmd mkdir -p $DESTDIR/lib/svc/manifest/network/samba36
     logcmd cp $SRCDIR/files/manifest-samba-nmbd.xml \
-        $DESTDIR/lib/svc/manifest/network/samba/nmbd.xml
+        $DESTDIR/lib/svc/manifest/network/samba36/nmbd.xml
     logcmd cp $SRCDIR/files/manifest-samba-smbd.xml \
-        $DESTDIR/lib/svc/manifest/network/samba/smbd.xml
+        $DESTDIR/lib/svc/manifest/network/samba36/smbd.xml
     logcmd cp $SRCDIR/files/manifest-samba-winbindd.xml \
-        $DESTDIR/lib/svc/manifest/network/samba/winbindd.xml
+        $DESTDIR/lib/svc/manifest/network/samba36/winbindd.xml
 }
 
 init
 download_source $PROG $PROG $VER
 patch_source
-#run_autogen
 prep_build
 build
 make_isa_stub

@@ -2,7 +2,7 @@
 <!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
 <service_bundle type="manifest" name="samba-winbindd">
 
-    <service name="network/samba/winbindd" type="service" version="1">
+    <service name="network/samba36/winbindd" type="service" version="1">
 
         <create_default_instance enabled="false" />
 
