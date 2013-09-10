@@ -29,7 +29,7 @@
 . ../../lib/functions.sh
 
 PROG=puppet     # App name
-VER=3.2.3       # App version
+VER=3.2.4       # App version
 VERHUMAN=$VER   # Human-readable version
 #PVER=          # Branch (set in config.sh, override here if needed)
 PKG=${PKGPUBLISHER}/system/management/puppet  # Package name (e.g. library/foo)
