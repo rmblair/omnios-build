@@ -33,7 +33,7 @@
 . ../../lib/functions.sh
 
 PROG=samba
-VER="3.6.19"
+VER="3.6.21"
 VERHUMAN=$VER
 PKG=$PKGPUBLISHER/service/network/samba36
 SUMMARY="${PROG}36 - CIFS server and domain controller"
