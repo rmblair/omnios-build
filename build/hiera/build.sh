@@ -30,7 +30,7 @@
 . ../../lib/gem-functions.sh
 
 PROG=hiera     # App name
-VER=1.2.1      # App version
+VER=1.3.0      # App version
 VERHUMAN=$VER   # Human-readable version
 #PVER=          # Branch (set in config.sh, override here if needed)
 PKG=${PKGPUBLISHER}/system/management/hiera  # Package name (e.g. library/foo)
