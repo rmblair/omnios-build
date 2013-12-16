@@ -40,11 +40,7 @@ PKG=$PKGPUBLISHER/library/openldap # Package name (e.g. library/foo)
 SUMMARY="open source implementation of the Lightweight Directory Access Protocol." # One-liner, must be filled in
 DESC="open source implementation of the Lightweight Directory Access Protocol."    # Longer description, must be filled in
 
-DEPENDS_IPS="system/library \
-    system/library/gcc-4-runtime \
-    system/library/math \
-    library/security/openssl \
-    system/library/security/libsasl"
+DEPENDS_IPS="library/security/openssl system/library/security/libsasl"
 ### only if you're building slapd
 #    omniti/database/bdb
 
