@@ -29,7 +29,7 @@
 . ../../lib/functions.sh
 
 PROG=docutils   # App name
-VER=0.10        # App version
+VER=0.11        # App version
 VERHUMAN=$VER   # Human readable version
 #PVER=0.1       # Branch (set in config.sh, override here if needed)
 PKG=$PKGPUBLISHER/developer/docutils     # Package name (without prefix)
